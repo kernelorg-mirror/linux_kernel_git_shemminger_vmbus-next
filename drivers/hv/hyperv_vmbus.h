@@ -77,8 +77,7 @@ enum hv_cpuid_function {
 
 /* Define synthetic interrupt controller flag constants. */
 #define HV_EVENT_FLAGS_COUNT		(256 * 8)
-#define HV_EVENT_FLAGS_BYTE_COUNT	(256)
-#define HV_EVENT_FLAGS_DWORD_COUNT	(256 / sizeof(u32))
+#define HV_EVENT_FLAGS_LONG_COUNT	(256 / sizeof(unsigned long))
 
 /* Define invalid partition identifier. */
 #define HV_PARTITION_ID_INVALID		((u64)0x0)
@@ -151,8 +150,7 @@ union hv_timer_config {
 
 /* Define the synthetic interrupt controller event flags format. */
 union hv_synic_event_flags {
-	u8 flags8[HV_EVENT_FLAGS_BYTE_COUNT];
-	u32 flags32[HV_EVENT_FLAGS_DWORD_COUNT];
+	unsigned long flags[HV_EVENT_FLAGS_LONG_COUNT];
 };
 
 /* Define the synthetic interrupt flags page layout. */
