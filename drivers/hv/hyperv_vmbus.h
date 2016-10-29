@@ -576,7 +576,7 @@ struct vmbus_connection {
 	 * recvInterruptPage to see which bit is set
 	 */
 	void *int_page;
-	void *send_int_page;
+	unsigned long *send_int_page;
 	void *recv_int_page;
 
 	/*
@@ -605,6 +605,12 @@ struct vmbus_msginfo {
 
 
 extern struct vmbus_connection vmbus_connection;
+
+static inline void vmbus_send_interrupt(u32 relid)
+{
+	sync_set_bit(relid % BITS_PER_LONG,
+		     vmbus_connection.send_int_page + BIT_WORD(relid));
+}
 
 enum vmbus_message_handler_type {
 	/* The related handler can sleep. */
