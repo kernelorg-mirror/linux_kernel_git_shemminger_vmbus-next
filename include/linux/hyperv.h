@@ -823,10 +823,6 @@ struct vmbus_channel {
 	 */
 	struct vmbus_channel *primary_channel;
 	/*
-	 * Support per-channel state for use by vmbus drivers.
-	 */
-	void *per_channel_state;
-	/*
 	 * To support per-cpu lookup mapping of relid to channel,
 	 * link up channels based on their CPU affinity.
 	 */
@@ -886,16 +882,6 @@ static inline void set_channel_affinity_state(struct vmbus_channel *c,
 static inline void set_channel_read_state(struct vmbus_channel *c, bool state)
 {
 	c->batched_reading = state;
-}
-
-static inline void set_per_channel_state(struct vmbus_channel *c, void *s)
-{
-	c->per_channel_state = s;
-}
-
-static inline void *get_per_channel_state(struct vmbus_channel *c)
-{
-	return c->per_channel_state;
 }
 
 static inline void set_channel_pending_send_size(struct vmbus_channel *c,
