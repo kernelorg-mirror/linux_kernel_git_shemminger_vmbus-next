@@ -406,21 +406,6 @@ static inline  __u64 generate_guest_id(__u8 d_info1, __u32 kernel_version,
 #define HV_SERVICE_PROTOCOL_VERSION (0x0010)
 #define HV_CONNECT_PAYLOAD_BYTE_COUNT 64
 
-/* #define VMBUS_REVISION_NUMBER	6 */
-
-/* Our local vmbus's port and connection id. Anything >0 is fine */
-/* #define VMBUS_PORT_ID		11 */
-
-/* 628180B8-308D-4c5e-B7DB-1BEB62E62EF4 */
-static const uuid_le VMBUS_SERVICE_ID = {
-	.b = {
-		0xb8, 0x80, 0x81, 0x62, 0x8d, 0x30, 0x5e, 0x4c,
-		0xb7, 0xdb, 0x1b, 0xeb, 0x62, 0xe6, 0x2e, 0xf4
-	},
-};
-
-
-
 struct hv_context {
 	/* We only support running on top of Hyper-V
 	* So at this point this really can only contain the Hyper-V ID
