@@ -96,30 +96,6 @@ static void hv_signal_on_write(u32 old_write, struct vmbus_channel *channel,
 		vmbus_setevent(channel);
 }
 
-/* Get the next write location for the specified ring buffer. */
-static inline u32
-hv_get_next_write_location(struct hv_ring_buffer_info *ring_info)
-{
-	u32 next = ring_info->ring_buffer->write_index;
-
-	return next;
-}
-
-/* Set the next write location for the specified ring buffer. */
-static inline void
-hv_set_next_write_location(struct hv_ring_buffer_info *ring_info,
-		     u32 next_write_location)
-{
-	ring_info->ring_buffer->write_index = next_write_location;
-}
-
-/* Get the next read location for the specified ring buffer. */
-static inline u32
-hv_get_next_read_location(const struct hv_ring_buffer_info *ring_info)
-{
-	return  ring_info->ring_buffer->read_index;
-}
-
 /*
  * Get the next read location + offset for the specified ring buffer.
  * This allows the caller to skip.
@@ -170,7 +146,7 @@ static u32 hv_copyfrom_ringbuffer(
 	u32				start_read_offset)
 {
 	void *ring_buffer = hv_get_ring_buffer(ring_info);
-	u32 ring_buffer_size = hv_get_ring_buffersize(ring_info);
+	u32 ring_buffer_size = ring_info->ring_datasize;
 
 	memcpy(dest, ring_buffer + start_read_offset, destlen);
 
@@ -192,7 +168,7 @@ static u32 hv_copyto_ringbuffer(
 	u32				srclen)
 {
 	void *ring_buffer = hv_get_ring_buffer(ring_info);
-	u32 ring_buffer_size = hv_get_ring_buffersize(ring_info);
+	u32 ring_buffer_size = ring_info->ring_datasize;
 
 	memcpy(ring_buffer + start_write_offset, src, srclen);
 
@@ -319,9 +295,9 @@ int hv_ringbuffer_write(struct vmbus_channel *channel,
 	}
 
 	/* Write to the ring buffer */
-	next_write_location = hv_get_next_write_location(outring_info);
+	next_write_location = outring_info->ring_buffer->write_index;
 
-	old_write = next_write_location;
+	old_write = outring_info->ring_buffer->write_index;
 
 	for (i = 0; i < kv_count; i++) {
 		next_write_location = hv_copyto_ringbuffer(outring_info,
@@ -331,8 +307,7 @@ int hv_ringbuffer_write(struct vmbus_channel *channel,
 	}
 
 	/* Set previous packet start */
-	prev_indices = hv_get_ring_bufferindices(outring_info);
-
+	prev_indices = (u64)outring_info->ring_buffer->write_index << 32;
 	next_write_location = hv_copyto_ringbuffer(outring_info,
 					     next_write_location,
 					     &prev_indices,
@@ -342,8 +317,7 @@ int hv_ringbuffer_write(struct vmbus_channel *channel,
 	virt_mb();
 
 	/* Now, update the write location */
-	hv_set_next_write_location(outring_info, next_write_location);
-
+	outring_info->ring_buffer->write_index = next_write_location;
 
 	if (lock)
 		spin_unlock_irqrestore(&outring_info->ring_lock, flags);
@@ -386,10 +360,9 @@ int hv_ringbuffer_read(struct vmbus_channel *channel,
 		return ret;
 	}
 
-	next_read_location = hv_get_next_read_location(inring_info);
-	next_read_location = hv_copyfrom_ringbuffer(inring_info, &desc,
-						    sizeof(desc),
-						    next_read_location);
+	next_read_location = hv_copyfrom_ringbuffer(inring_info,
+				    &desc, sizeof(desc),
+				    inring_info->ring_buffer->read_index);
 
 	offset = raw ? 0 : (desc.offset8 << 3);
 	packetlen = (desc.len8 << 3) - offset;
