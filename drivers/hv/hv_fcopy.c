@@ -177,8 +177,6 @@ static void fcopy_send_data(struct work_struct *dummy)
 		}
 	}
 	kfree(smsg_out);
-
-	return;
 }
 
 /*

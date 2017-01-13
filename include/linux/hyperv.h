@@ -1515,8 +1515,6 @@ static inline  void hv_signal_on_read(struct vmbus_channel *channel)
 
 	if (cur_write_sz >= pending_sz)
 		vmbus_setevent(channel);
-
-	return;
 }
 
 /*
